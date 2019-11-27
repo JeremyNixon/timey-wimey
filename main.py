@@ -107,13 +107,13 @@ def sum_time(events):
     """Given a list of events, sum the time taken for all of them."""
     total_time = datetime.timedelta()
     for event in events:
-        try:
-            startTime = iso8601.parse_date(event["start"]["dateTime"])
-            endTime = iso8601.parse_date(event["end"]["dateTime"])
-            duration = endTime - startTime
-            total_time += duration
-        except:
-            pass
+        if "dateTime" not in event["start"] or "dateTime" not in event["end"]:
+            logging.info("Skipping event {}.".format(event["summary"]))
+            continue
+        startTime = iso8601.parse_date(event["start"]["dateTime"])
+        endTime = iso8601.parse_date(event["end"]["dateTime"])
+        duration = endTime - startTime
+        total_time += duration
 
     # Returns the result in hours
     return total_time.total_seconds() / 60 / 60
@@ -124,9 +124,6 @@ def main(argv):
 
     service = get_calendar_service()
     calendars_meta = get_calendars(service)
-    print([i for i in calendars_meta.keys()])
-    calendars_meta.pop("Jeremy Nixon's Facebook Events")
-    calendars_meta.pop("jeremy nixon")
 
     print("Time per calendar for the last 7 days")
     # TODO: Sort this, display more info, the possibilities are endless...
