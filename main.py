@@ -107,10 +107,13 @@ def sum_time(events):
     """Given a list of events, sum the time taken for all of them."""
     total_time = datetime.timedelta()
     for event in events:
-        startTime = iso8601.parse_date(event["start"]["dateTime"])
-        endTime = iso8601.parse_date(event["end"]["dateTime"])
-        duration = endTime - startTime
-        total_time += duration
+        try:
+            startTime = iso8601.parse_date(event["start"]["dateTime"])
+            endTime = iso8601.parse_date(event["end"]["dateTime"])
+            duration = endTime - startTime
+            total_time += duration
+        except:
+            pass
 
     # Returns the result in hours
     return total_time.total_seconds() / 60 / 60
@@ -121,6 +124,9 @@ def main(argv):
 
     service = get_calendar_service()
     calendars_meta = get_calendars(service)
+    print([i for i in calendars_meta.keys()])
+    calendars_meta.pop("Jeremy Nixon's Facebook Events")
+    calendars_meta.pop("jeremy nixon")
 
     print("Time per calendar for the last 7 days")
     # TODO: Sort this, display more info, the possibilities are endless...
@@ -129,7 +135,8 @@ def main(argv):
         events = get_events(service, meta, now)
         total_time = sum_time(events)
         fraction = total_time / 156.0 * 100
-        print("  {:15}:\t{:5.2f} h / {:4.1f} %".format(truncated_name, total_time, fraction))
+        if total_time > 0:
+            print("  {:15}:\t{:5.2f} h / {:4.1f} %".format(truncated_name, total_time, fraction))
 
 if __name__ == '__main__':
     app.run(main)
